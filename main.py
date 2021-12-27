@@ -41,6 +41,7 @@ model= models.Sequential([baseModel, averageLayer, predictionLayer])
 model.summary()
 
 # training:
+model= models.load_model('./myModel/myMNV2.h5')
 print('### training...')
 baseLearningRate= 0.0001
 model.compile(
