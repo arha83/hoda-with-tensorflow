@@ -20,6 +20,13 @@ trainImages, trainLabels= read_hoda_dataset(dataset_path='./HodaDatasetReader/Di
 testImages, testlabels= read_hoda_dataset(dataset_path='./HodaDatasetReader/DigitDB/Test 20000.cdb', images_height=32, images_width=32, one_hot=True, reshape=False)
 remainImages, remainLabels= read_hoda_dataset(dataset_path='./HodaDatasetReader/DigitDB/RemainingSamples.cdb', images_height=32, images_width=32, one_hot=True, reshape=True)
 
+# normalizing dataset:
+trainImages= trainImages.reshape(trainImages.shape[0], 32, 32, 1) / 255.0
+testImages= testImages.reshape(testImages.shape[0], 32, 32, 1) / 255.0
+remainImages= remainImages.reshape(remainImages.shape[0], 32, 32, 1) / 255.0
+
+
+
 
 
 
