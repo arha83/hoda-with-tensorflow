@@ -1,11 +1,9 @@
+import numpy as np
 from HodaDatasetReader.HodaDatasetReader import read_hoda_dataset
 import os
-import tensorflow as tf
-from tensorflow import keras
-from tensorflow.keras import datasets, layers, models, losses, applications
+from tensorflow.keras import datasets, layers, models, losses, applications, optimizers
 import cv2 as cv
-import numpy as np
-
+import tensorflow as tf
 
 '''
 physical_devices = tf.config.list_physical_devices('GPU') 
@@ -17,28 +15,43 @@ classes= [0,1,2,3,4,5,6,7,8,9]
 # loading dataset:
 print('### loading dataset...')
 trainImages, trainLabels= read_hoda_dataset(dataset_path='./HodaDatasetReader/DigitDB/Train 60000.cdb', images_height=32, images_width=32, one_hot=False, reshape=True)
-testImages, testlabels= read_hoda_dataset(dataset_path='./HodaDatasetReader/DigitDB/Test 20000.cdb', images_height=32, images_width=32, one_hot=True, reshape=False)
-remainImages, remainLabels= read_hoda_dataset(dataset_path='./HodaDatasetReader/DigitDB/RemainingSamples.cdb', images_height=32, images_width=32, one_hot=True, reshape=True)
+testImages, testLabels= read_hoda_dataset(dataset_path='./HodaDatasetReader/DigitDB/Test 20000.cdb', images_height=32, images_width=32, one_hot=False, reshape=True)
+remainImages, remainLabels= read_hoda_dataset(dataset_path='./HodaDatasetReader/DigitDB/RemainingSamples.cdb', images_height=32, images_width=32, one_hot=False, reshape=True)
 
 # normalizing dataset:
+print('### normalizing dataset...')
 trainImages= trainImages.reshape(trainImages.shape[0], 32, 32, 1)
 testImages= testImages.reshape(testImages.shape[0], 32, 32, 1)
 remainImages= remainImages.reshape(remainImages.shape[0], 32, 32, 1)
-trainImages= cv.cvtColor(trainImages, cv.COLOR_GRAY2RGB) / 255.0
-testImages= cv.cvtColor(testImages, cv.COLOR_GRAY2RGB) / 255.0
-remainImages= cv.cvtColor(remainImages, cv.COLOR_GRAY2RGB) / 255.0
+trainImages= np.repeat(trainImages, 3, 3)
+testImages= np.repeat(testImages, 3, 3)
+remainImages= np.repeat(remainImages, 3, 3)
+
 
 # building the model:
 print('### building the model...')
-baseModel= applications.MobileNetV2(input_shape=(32,32,3), include_top=False, weights='imagenet')
+baseModel= applications.MobileNetV2(
+    input_shape=(32,32,3),
+    include_top=False,
+    weights='imagenet')
 baseModel.trainable= False
 averageLayer= layers.GlobalAveragePooling2D()
-predictionLayer= layers.Dense(10)
+predictionLayer= layers.Dense(10, activation= 'softmax')
 model= models.Sequential([baseModel, averageLayer, predictionLayer])
+model.summary()
 
-print(model.summary())
-
-
+# training:
+print('### training...')
+baseLearningRate= 0.0001
+model.compile(
+    optimizer= optimizers.RMSprop(baseLearningRate),
+    loss= losses.SparseCategoricalCrossentropy(from_logits= True),
+    metrics=['accuracy'])
+model.fit(
+    trainImages, trainLabels,
+    epochs=5,
+    validation_data=(testImages, testLabels))
+model.save('./myModel/myMNV2.h5')
 
 
 
