@@ -42,7 +42,7 @@ model.summary()
 
 # training:
 model= models.load_model('./myModel/myMNV2.h5')
-print('### training...')
+'''print('### training...')
 baseLearningRate= 0.0001
 model.compile(
     optimizer= optimizers.RMSprop(baseLearningRate),
@@ -52,7 +52,24 @@ model.fit(
     trainImages, trainLabels,
     epochs=5,
     validation_data=(testImages, testLabels))
-model.save('./myModel/myMNV2.h5')
+model.save('./myModel/myMNV2.h5')'''
+
+# predicting:
+os.system('cls')
+print('### predicting...')
+print('image should be in \'test images\' folder.')
+print('image format should have \'.png\' format.')
+print('enter \'q\' for exit.\n')
+while True:
+    imageName= input('please enter image name: ')
+    os.system('cls')
+    if imageName == 'q': break
+    image= cv.imread('./test images/'+imageName+'.png')
+    pre= np.expand_dims(image, 0)
+    predictions= model.predict([pre])
+    maxi= np.where(predictions[0] == np.amax(predictions[0]))[0][0]
+    for i in range(10): print(classes[i], ': ', predictions[0][i], sep='')
+    print(f'closest class to {imageName}: {classes[maxi]}')
 
 
 
