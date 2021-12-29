@@ -6,6 +6,7 @@ import cv2 as cv
 import tensorflow as tf
 
 '''
+---uncomment for using gpu
 physical_devices = tf.config.list_physical_devices('GPU') 
 tf.config.experimental.set_memory_growth(physical_devices[0], True)
 '''
@@ -23,23 +24,21 @@ print('### normalizing dataset...')
 trainImages= trainImages.reshape(trainImages.shape[0], 32, 32, 1)
 testImages= testImages.reshape(testImages.shape[0], 32, 32, 1)
 remainImages= remainImages.reshape(remainImages.shape[0], 32, 32, 1)
-trainImages= np.repeat(trainImages, 3, 3)
-testImages= np.repeat(testImages, 3, 3)
-remainImages= np.repeat(remainImages, 3, 3)
 
 
 # building the model:
 print('### building the model...')
-baseModel= applications.MobileNetV2(
-    input_shape=(32,32,3),
-    include_top=False,
-    weights='imagenet')
-baseModel.trainable= False
-averageLayer= layers.GlobalAveragePooling2D()
-predictionLayer= layers.Dense(10, activation= 'softmax')
-model= models.Sequential([baseModel, averageLayer, predictionLayer])
+model= models.Sequential()
+model.add(layers.Conv2D(32, (3,3), activation='relu', input_shape=(32,32,1)))
+model.add(layers.MaxPooling2D((2,2)))
+model.add(layers.Conv2D(64, (3,3), activation='relu', input_shape=(32,32,1)))
+model.add(layers.MaxPooling2D((2,2)))
+model.add(layers.Conv2D(64, (3,3), activation='relu', input_shape=(32,32,1)))
+model.add(layers.MaxPooling2D((2,2)))
+model.add(layers.Flatten())
+model.add(layers.Dense(64, activation='relu'))
+model.add(layers.Dense(10))
 model.summary()
-
 # training:
 model= models.load_model('./myModel/myMNV2.h5')
 '''print('### training...')
@@ -50,7 +49,7 @@ model.compile(
     metrics=['accuracy'])
 model.fit(
     trainImages, trainLabels,
-    epochs=5,
+    epochs=2,
     validation_data=(testImages, testLabels))
 model.save('./myModel/myMNV2.h5')'''
 
@@ -65,6 +64,7 @@ while True:
     os.system('cls')
     if imageName == 'q': break
     image= cv.imread('./test images/'+imageName+'.png')
+    image= cv.cvtColor(image, cv.COLOR_RGB2GRAY)
     pre= np.expand_dims(image, 0)
     predictions= model.predict([pre])
     maxi= np.where(predictions[0] == np.amax(predictions[0]))[0][0]
