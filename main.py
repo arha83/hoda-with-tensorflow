@@ -11,6 +11,8 @@ physical_devices = tf.config.list_physical_devices('GPU')
 tf.config.experimental.set_memory_growth(physical_devices[0], True)
 '''
 
+print("Num GPUs Available: ", len(tf.config.list_physical_devices('GPU')))
+
 classes= [0,1,2,3,4,5,6,7,8,9]
 
 # loading dataset:
@@ -29,19 +31,20 @@ remainImages= remainImages.reshape(remainImages.shape[0], 32, 32, 1)
 # building the model:
 print('### building the model...')
 model= models.Sequential()
-model.add(layers.Conv2D(32, (3,3), activation='relu', input_shape=(32,32,1)))
+model.add(layers.Conv2D(32, (3,3), activation='relu', input_shape=(32,32,1), padding='same'))
 model.add(layers.MaxPooling2D((2,2)))
-model.add(layers.Conv2D(64, (3,3), activation='relu', input_shape=(32,32,1)))
+model.add(layers.Conv2D(64, (3,3), activation='relu', padding='same'))
 model.add(layers.MaxPooling2D((2,2)))
-model.add(layers.Conv2D(64, (3,3), activation='relu', input_shape=(32,32,1)))
+model.add(layers.Conv2D(64, (3,3), activation='relu', padding='same'))
 model.add(layers.MaxPooling2D((2,2)))
 model.add(layers.Flatten())
 model.add(layers.Dense(64, activation='relu'))
 model.add(layers.Dense(10))
 model.summary()
+
 # training:
-model= models.load_model('./myModel/myMNV2.h5')
-'''print('### training...')
+#model= models.load_model('./myModel/myMNV2.h5')
+print('### training...')
 baseLearningRate= 0.0001
 model.compile(
     optimizer= optimizers.RMSprop(baseLearningRate),
@@ -51,7 +54,7 @@ model.fit(
     trainImages, trainLabels,
     epochs=2,
     validation_data=(testImages, testLabels))
-model.save('./myModel/myMNV2.h5')'''
+model.save('./myModel/myMNV2.h5')
 
 # predicting:
 os.system('cls')
@@ -70,7 +73,6 @@ while True:
     maxi= np.where(predictions[0] == np.amax(predictions[0]))[0][0]
     for i in range(10): print(classes[i], ': ', predictions[0][i], sep='')
     print(f'closest class to {imageName}: {classes[maxi]}')
-
 
 
 
